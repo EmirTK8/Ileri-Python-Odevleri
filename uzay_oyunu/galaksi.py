@@ -7,8 +7,10 @@
 import json
 import os
 from typing import Any
+from uzay_oyunu.dekoratorler import log_cagri
 
 
+@log_cagri
 def galaksi_kur(
     gezegenler: list,
     baglantilar: dict,

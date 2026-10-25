@@ -6,6 +6,7 @@
 
 from uzay_oyunu.galaksi import galaksi_kur, veri_yukle, galaksi_yukle
 from uzay_oyunu.akis import yakit_gostergesi
+from uzay_oyunu.dekoratorler import log_cagri
 
 
 def envanter_metni(credits: bool, engines: bool, copilot: bool) -> str:
@@ -26,6 +27,7 @@ def envanter_metni(credits: bool, engines: bool, copilot: bool) -> str:
     return "Sende: " + ", ".join(esyalar)
 
 
+@log_cagri
 def hedef_menusu(hedefler: list) -> str:
     """Gidilebilecek hedefleri numaralandırarak menü olarak döndürür."""
     satirlar = ["Nereye gitmek istersin?"]

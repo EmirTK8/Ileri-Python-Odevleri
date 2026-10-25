@@ -53,3 +53,30 @@ def say(fonksiyon: Callable[..., Any]) -> Callable[..., Any]:
 
     sarmalayici.cagri = 0
     return sarmalayici
+
+
+def log_cagri(fonksiyon: Callable[..., Any]) -> Callable[..., Any]:
+    """Her çağrıdan önce fonksiyon adını ve argümanlarını, sonra da dönüş değerini yazdıran dekoratör.
+
+    Çağrı formatı:
+    -> fonksiyon_adi(arg1, arg2, kw1=deger1)
+    <- fonksiyon_adi = donus_degeri
+
+    Args:
+        fonksiyon: Loglanacak hedef fonksiyon.
+
+    Returns:
+        Callable: Loglama yapan sarmalayıcı fonksiyon.
+    """
+    @functools.wraps(fonksiyon)
+    def sarmalayici(*args: Any, **kwargs: Any) -> Any:
+        arg_parcalari = [repr(arg) for arg in args]
+        arg_parcalari.extend(f"{anahtar}={deger!r}" for anahtar, deger in kwargs.items())
+        print(f"-> {fonksiyon.__name__}({', '.join(arg_parcalari)})")
+
+        sonuc = fonksiyon(*args, **kwargs)
+
+        print(f"<- {fonksiyon.__name__} = {sonuc!r}")
+        return sonuc
+
+    return sarmalayici

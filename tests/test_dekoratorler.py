@@ -116,3 +116,41 @@ def test_lru_cache_ustte_say_altta() -> None:
     assert fib(20) == 6765
     # @lru_cache en dışta olduğu için içteki sayacın niteliğine __wrapped__ ile ulaşılır
     assert fib.__wrapped__.cagri == 21
+
+
+# --- Görev 3: log_cagri Testleri ---
+
+def test_log_cagri_ciktisi(capsys: pytest.CaptureFixture[str]) -> None:
+    """log_cagri dekoratörünün PDF'teki örnek gibi hem çağrıyı hem sonucu logladığını doğrular."""
+    from uzay_oyunu.dekoratorler import log_cagri
+
+    @log_cagri
+    def yolculuk(hedef: str, hiz: int = 1) -> str:
+        return f"{hedef} hiz={hiz}"
+
+    sonuc = yolculuk("orion", hiz=3)
+    assert sonuc == "orion hiz=3"
+
+    cikis = capsys.readouterr().out
+    assert "-> yolculuk('orion', hiz=3)" in cikis
+    assert "<- yolculuk = 'orion hiz=3'" in cikis
+
+
+def test_log_cagri_hedef_menusu_ve_galaksi_kur(capsys: pytest.CaptureFixture[str]) -> None:
+    """hedef_menusu ve galaksi_kur fonksiyonlarının loglanarak sorunsuz çalıştığını doğrular."""
+    from uzay_oyunu.oyun import hedef_menusu
+    from uzay_oyunu.galaksi import galaksi_kur
+
+    # hedef_menusu çağrısı
+    menu = hedef_menusu(["centauri", "sirius"])
+    assert "[1] centauri" in menu
+
+    # galaksi_kur çağrısı
+    g = galaksi_kur(["dünya", "mars"], {"dünya": ["mars"]}, "dünya", yakit=80)
+    assert g["konum"] == "dünya"
+
+    cikis = capsys.readouterr().out
+    assert "-> hedef_menusu(['centauri', 'sirius'])" in cikis
+    assert "<- hedef_menusu =" in cikis
+    assert "-> galaksi_kur(['dünya', 'mars'], {'dünya': ['mars']}, 'dünya', yakit=80)" in cikis
+    assert "<- galaksi_kur =" in cikis
