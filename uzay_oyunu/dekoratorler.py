@@ -32,3 +32,24 @@ def sure_olc(fonksiyon: Callable[..., Any]) -> Callable[..., Any]:
         return sonuc
 
     return sarmalayici
+
+
+def say(fonksiyon: Callable[..., Any]) -> Callable[..., Any]:
+    """Çağrı sayısını fonksiyonun bir niteliğinde (.cagri) sayan dekoratör.
+
+    Her çağrıda sarmalayici.cagri değerini bir artırır ve fonksiyonu çalıştırır.
+    functools.wraps ile sarmalanır.
+
+    Args:
+        fonksiyon: Çağrıları sayılacak hedef fonksiyon.
+
+    Returns:
+        Callable: cagri niteliğine sahip sarmalayıcı fonksiyon.
+    """
+    @functools.wraps(fonksiyon)
+    def sarmalayici(*args: Any, **kwargs: Any) -> Any:
+        sarmalayici.cagri += 1
+        return fonksiyon(*args, **kwargs)
+
+    sarmalayici.cagri = 0
+    return sarmalayici

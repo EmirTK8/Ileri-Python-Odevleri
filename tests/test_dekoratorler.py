@@ -67,3 +67,52 @@ def test_sure_olc_rota_sayacina_uygulama(capsys: pytest.CaptureFixture[str]) -> 
     cikis = capsys.readouterr().out
     assert "rota_sayisi_onbelleksiz:" in cikis
     assert "sn" in cikis
+
+
+# --- Görev 2: say ve Dekoratör Sırası Testleri ---
+
+def test_say_yalnizca_say() -> None:
+    """Yalnızca @say ile süslenen özyinelemeli fib(20) için 21891 çağrı yapıldığını doğrular."""
+    from uzay_oyunu.dekoratorler import say
+
+    @say
+    def fib(n: int) -> int:
+        if n < 2:
+            return n
+        return fib(n - 1) + fib(n - 2)
+
+    assert fib(20) == 6765
+    assert fib.cagri == 21891
+
+
+def test_say_ustte_lru_cache_altta() -> None:
+    """@say üstte, @lru_cache altta iken fib(20) için 39 çağrı yapıldığını doğrular."""
+    import functools
+    from uzay_oyunu.dekoratorler import say
+
+    @say
+    @functools.lru_cache(maxsize=None)
+    def fib(n: int) -> int:
+        if n < 2:
+            return n
+        return fib(n - 1) + fib(n - 2)
+
+    assert fib(20) == 6765
+    assert fib.cagri == 39
+
+
+def test_lru_cache_ustte_say_altta() -> None:
+    """@lru_cache üstte, @say altta iken fib(20) için 21 çağrı yapıldığını doğrular."""
+    import functools
+    from uzay_oyunu.dekoratorler import say
+
+    @functools.lru_cache(maxsize=None)
+    @say
+    def fib(n: int) -> int:
+        if n < 2:
+            return n
+        return fib(n - 1) + fib(n - 2)
+
+    assert fib(20) == 6765
+    # @lru_cache en dışta olduğu için içteki sayacın niteliğine __wrapped__ ile ulaşılır
+    assert fib.__wrapped__.cagri == 21
