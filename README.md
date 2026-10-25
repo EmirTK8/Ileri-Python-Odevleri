@@ -1,66 +1,70 @@
-# İleri Python Programlama — Hafta 4 Lab Ödevi
+# İleri Python Programlama — Laboratuvar Ödevleri
 
-**Ad Soyad:** Emir Talha Karaman
-**Öğrenci No:** 20253006003
-**Ders:** İleri Python Programlama
-**Kurum:** İstanbul Nişantaşı Üniversitesi
-**Öğretim Üyesi:** Dr. Öğr. Üyesi Murat Emeç
-**Dönem:** 2026–2027 Güz
-**GitHub deposu:** https://github.com/EmirTK8/20253006003_hafta3
+**Öğrenci:** Emir Talha Karaman  
+**Öğrenci No:** 20253006003  
+**Ders:** İleri Python Programlama  
+**Kurum:** İstanbul Nişantaşı Üniversitesi  
+**Öğretim Üyesi:** Dr. Öğr. Üyesi Murat Emeç  
+**Dönem:** 2026–2027 Güz  
+**GitHub Deposu:** https://github.com/EmirTK8/Ileri-Python-Odevleri  
 
-## Proje
+---
 
-Hafta 3'te geliştirilen uzay oyunu bu hafta üreteçler, tembel veri işleme,
-önbellekli rota hesabı ve `functools` kullanımıyla genişletildi. Önceki haftanın
-saf fonksiyonları, galaksi JSON verisi, `*args`/`**kwargs`, closure, lambda ve
-kapsam çalışmaları korunmuştur.
+## 🌿 Proje ve Branch (Dal) Yapısı
 
-## Hafta 4 görevleri
+Bu depo, dönem boyunca geliştirilen **Uzay Oyunu** projesini ve haftalık laboratuvar çalışmalarını içermektedir. Proje, her haftanın bir önceki haftanın son commit'inden devam ettiği zincirleme bir branch mimarisine sahiptir:
 
-1. `uzay_oyunu/akis.py` içinde Fibonacci ve yakıt üreteçleri.
-2. Oyunda her yolculukta yakıt tüketimi ve yakıt bittiğinde kayıp mesajı.
-3. `veri/seyir.txt` dosyası ve dosyayı listeye almadan işleyen üç aşamalı
-   seyir defteri üreteç boru hattı.
-4. `uzay_oyunu/rotalar.py` içinde önbellekli/önbelleksiz rota sayacı.
-5. `istatistik.py` içinde galaksi istatistiklerinin iki yazımı ve `partial`
-   ile `hizli_yolculuk`.
+* **`main`**: En güncel durum ve tüm haftaların birleştirilmiş ana çalışma alanı.
+* **`hafta3`**: 3. Hafta Lab Ödevi (Saf fonksiyonlar, galaksi JSON verisi, esnek parametreler, kapsam ve closure).
+* **`hafta4`**: 4. Hafta Lab Ödevi (Üreteçler, seyir boru hattı, rota önbelleği ve functools).
+* *(Sonraki haftalar da önceki haftanın dalından türetilerek bu yapıyla devam edecektir.)*
 
-İstatistik çıktıları mevcut galaksi verisine göre:
+---
 
-```text
-['DÜNYA', 'CENTAURI', 'SIRIUS', 'ORION', 'KARA_DELIK']
-['dünya', 'centauri', 'sirius', 'orion']
-12
-```
+## 🚀 Hafta 3 — Fonksiyonlar Derinlemesine
 
-Bağlantı toplamı, bu depodaki beş gezegenli galaksideki tüm yönlü bağlantı
-listelerinin uzunlukları toplamıdır. Bu nedenle örnek metindeki 10 değeri yerine
-mevcut veri için 12 elde edilir.
+Uzay oyununun monolitik `travel()` fonksiyonu küçük, test edilebilir saf fonksiyonlara bölünmüş ve harita harici bir JSON dosyasına taşınmıştır:
 
-## Rota sayacı ölçümü
+1. **Saf Fonksiyonlar:** `envanter_metni` ve `hedef_menusu` fonksiyonları ekrana baskı yapmadan formatlanmış metin döndürecek şekilde yazıldı.
+2. **Esnek Parametreler:** `gorev_kaydi` fonksiyonu ile `*args`, `**kwargs` açma mekanizması ve keyword-only `oncelik` parametresi uygulandı.
+3. **Veri Odaklı Harita:** `uzay_oyunu/galaksi.json` oluşturuldu; `galaksi_kur` fonksiyonu ile başlangıç gezegeni ve varsayılan yakıt ayarları yönetildi.
+4. **Tuzaklar ve Kapsam:** Varsayılan argümanlardaki değiştirilebilir liste (`depo=[]`) tuzağı `None` kalıbıyla giderildi. LEGB kuralı ve `UnboundLocalError` mekanizması `kapsam.md` dosyasında detaylandırıldı.
+5. **Closure ve Lambda:** `nonlocal` ile durum tutan `hamle_sayaci`, `lambda` ile çok kriterli `en_bagli_gezegenler` sıralaması ve çalışma süresi ölçen `@sure_olc` dekoratörü eklendi.
 
-Ölçüm, `uzay_oyunu/galaksi.json` içindeki galaksi ve `dünya` başlangıç gezegeni
-kullanılarak, `adim=20` için `time.perf_counter()` ile yapıldı. Önce
-önbelleksiz fonksiyon, sonra yeni ve boş bir LRU önbelleği kullanan fonksiyon
-çalıştırıldı. Çalışma ortamı: macOS, Python 3.14.2.
+---
 
-| Yöntem | Sonuç | Süre |
-|---|---:|---:|
-| Önbelleksiz | 147261692 | 65.082095 saniye |
-| Önbellekli | 147261692 | 0.000122 saniye |
+## ⚡ Hafta 4 — Üreteçler ve functools
 
-`cache_info()` çıktısı: `CacheInfo(hits=128, misses=98, maxsize=None, currsize=98)`.
+Uzay macerasına üreteçler (generators), tembel veri işleme boru hattı ve `@lru_cache` destekli önbellekli rota hesaplama araçları entegre edildi:
 
-Önbelleksiz hesap aynı alt rotaları defalarca yeniden hesaplarken, önbellekli
-sürüm her gezegen/adım çifti için sonucu saklayıp tekrar kullanır. Süreler
-çalıştırma ortamına göre değişebilir.
+1. **Fibonacci Üreteci:** `fibonacci()` sonsuz üreteci yazıldı; `next()`, `itertools.islice` ve `itertools.takewhile` ile test edildi.
+2. **Yakıt Göstergesi:** `yakit_gostergesi(yakit, tuketim)` üreteci ile her seyahatte yakıt tüketimi simüle edildi ve yakıt bitince oyunun sonlanması sağlandı.
+3. **Seyir Defteri Boru Hattı:** `veri/seyir.txt` dosyası belleğe liste olarak yüklenmeden; `satirlari_oku`, `ayristir` ve `uzun_yolculuklar` üreteçleri üzerinden tembelce (lazy evaluation) süzüldü.
+4. **Önbellekli Rota Sayacı:** `@lru_cache` kullanılarak belirli bir adımdaki rota sayısını hesaplayan `rota_sayaci` yazıldı.
+5. **Fonksiyonel İstatistikler & partial:** `istatistik.py` modülünde gezegen verileri hem `map`/`filter`/`reduce` hem de liste üreteçleriyle hesaplandı; `functools.partial` ile `hizli_yolculuk` türetildi.
 
-## Testler
+### Görev 4: Rota Sayacı Performans Ölçümü (`adim=20`)
 
-Tüm eski ve yeni testleri çalıştırmak için:
+Mevcut galaksi yapısında `dünya` başlangıç gezegeni için 20 adımda tamamlanan rotalar test edilmiştir:
+
+| Yöntem | Hesaplanan Rota | Çalışma Süresi |
+|:---|---:|---:|
+| **Önbelleksiz** | 147.261.692 | ~65.08 saniye |
+| **Önbellekli (`@lru_cache`)** | 147.261.692 | ~0.00012 saniye |
+
+* **`cache_info()` Çıktısı:** `CacheInfo(hits=128, misses=98, maxsize=None, currsize=98)`
+* **Sonuç:** Önbellek kullanımı, tekrarlanan alt rota hesaplamalarını hafızadan getirerek ~500.000 katlık bir performans artışı sağlamıştır.
+
+---
+
+## 🧪 Testler
+
+Depodaki tüm testleri çalıştırmak için:
 
 ```bash
 uv run pytest
+# veya
+python3 -m pytest
 ```
 
-Son doğrulama: **31 test geçti**.
+* Tüm haftaların toplam **31 testi** (`tests/test_fonksiyonlar.py`, `tests/test_tuzaklar.py`, `tests/test_akis.py`) başarıyla geçmektedir.
