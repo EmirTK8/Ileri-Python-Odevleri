@@ -4,8 +4,16 @@
 #
 # Hafta 5 Lab Ödevi — Dekoratör Birim Testleri
 
+import functools
 import pytest
-from uzay_oyunu.dekoratorler import sure_olc
+from uzay_oyunu.dekoratorler import (
+    sure_olc,
+    say,
+    log_cagri,
+    sinirla,
+    yakit_harca,
+    hafiza,
+)
 
 
 # --- Görev 1: sure_olc Testleri ---
@@ -73,8 +81,6 @@ def test_sure_olc_rota_sayacina_uygulama(capsys: pytest.CaptureFixture[str]) -> 
 
 def test_say_yalnizca_say() -> None:
     """Yalnızca @say ile süslenen özyinelemeli fib(20) için 21891 çağrı yapıldığını doğrular."""
-    from uzay_oyunu.dekoratorler import say
-
     @say
     def fib(n: int) -> int:
         if n < 2:
@@ -87,9 +93,6 @@ def test_say_yalnizca_say() -> None:
 
 def test_say_ustte_lru_cache_altta() -> None:
     """@say üstte, @lru_cache altta iken fib(20) için 39 çağrı yapıldığını doğrular."""
-    import functools
-    from uzay_oyunu.dekoratorler import say
-
     @say
     @functools.lru_cache(maxsize=None)
     def fib(n: int) -> int:
@@ -103,9 +106,6 @@ def test_say_ustte_lru_cache_altta() -> None:
 
 def test_lru_cache_ustte_say_altta() -> None:
     """@lru_cache üstte, @say altta iken fib(20) için 21 çağrı yapıldığını doğrular."""
-    import functools
-    from uzay_oyunu.dekoratorler import say
-
     @functools.lru_cache(maxsize=None)
     @say
     def fib(n: int) -> int:
@@ -122,8 +122,6 @@ def test_lru_cache_ustte_say_altta() -> None:
 
 def test_log_cagri_ciktisi(capsys: pytest.CaptureFixture[str]) -> None:
     """log_cagri dekoratörünün PDF'teki örnek gibi hem çağrıyı hem sonucu logladığını doğrular."""
-    from uzay_oyunu.dekoratorler import log_cagri
-
     @log_cagri
     def yolculuk(hedef: str, hiz: int = 1) -> str:
         return f"{hedef} hiz={hiz}"
@@ -225,3 +223,78 @@ def test_travel_komut_entegrasyonu(monkeypatch: pytest.MonkeyPatch, capsys: pyte
     cikis = capsys.readouterr().out
     assert "centauri, sirius" in cikis
     assert "Oyunu 0 hamlede bitirdin!" in cikis
+
+
+# --- Görev 5: sinirla ve yakit_harca Testleri ---
+
+def test_yakit_harca_gecerli_deger() -> None:
+    """yakit_harca(30) çağrısının 70 döndürdüğünü doğrular."""
+    assert yakit_harca(30) == 70
+
+
+def test_yakit_harca_sinir_degerleri() -> None:
+    """Sınır değerleri olan 0 ve 100 için yakit_harca fonksiyonunun başarıyla çalıştığını doğrular."""
+    assert yakit_harca(0) == 100
+    assert yakit_harca(100) == 0
+
+
+def test_yakit_harca_aralik_disi_degerler() -> None:
+    """Aralık dışı (alt ve üst sınırın dışındaki) değerler için anlamlı ValueError verildiğini doğrular."""
+    with pytest.raises(ValueError) as exc1:
+        yakit_harca(150)
+    assert "yakit_harca: 150 değeri 0-100 aralığında değil" in str(exc1.value)
+
+    with pytest.raises(ValueError) as exc2:
+        yakit_harca(-10)
+    assert "yakit_harca: -10 değeri 0-100 aralığında değil" in str(exc2.value)
+
+
+# --- Bonus: hafiza ve lru_cache Karşılaştırma Testi ---
+
+def test_hafiza_lru_cache_karsilastirma() -> None:
+    """hafiza dekoratörünün sonuçlarını functools.lru_cache ile karşılaştırır ve önbellek tahliyesini doğrular."""
+    hesap_sayisi_hafiza = 0
+    hesap_sayisi_lru = 0
+
+    @hafiza(maxsize=None)
+    def kup_al_hafiza(x: int) -> int:
+        nonlocal hesap_sayisi_hafiza
+        hesap_sayisi_hafiza += 1
+        return x ** 3
+
+    @functools.lru_cache(maxsize=None)
+    def kup_al_lru(x: int) -> int:
+        nonlocal hesap_sayisi_lru
+        hesap_sayisi_lru += 1
+        return x ** 3
+
+    test_girdileri = [2, 3, 4, 2, 3, 5, 4, 5]
+    for g in test_girdileri:
+        assert kup_al_hafiza(g) == kup_al_lru(g)
+
+    assert hesap_sayisi_hafiza == hesap_sayisi_lru == 4
+
+    # maxsize sınırlaması ve en eski girdinin silinmesi testi
+    hesap_sayisi_sinirli = 0
+
+    @hafiza(maxsize=2)
+    def kare_sinirli(x: int) -> int:
+        nonlocal hesap_sayisi_sinirli
+        hesap_sayisi_sinirli += 1
+        return x * x
+
+    assert kare_sinirli(1) == 1  # hesaplandı (1)
+    assert kare_sinirli(2) == 4  # hesaplandı (2)
+    assert hesap_sayisi_sinirli == 2
+
+    assert kare_sinirli(2) == 4  # cache hit
+    assert hesap_sayisi_sinirli == 2
+
+    assert kare_sinirli(3) == 9  # cache doldu, en eski (1) silindi, hesaplandı (3)
+    assert hesap_sayisi_sinirli == 3
+
+    assert kare_sinirli(1) == 1  # 1 silinmişti, tekrar hesaplandı (4)
+    assert hesap_sayisi_sinirli == 4
+
+    assert kare_sinirli(3) == 9  # 3 önbellekte, cache hit
+    assert hesap_sayisi_sinirli == 4

@@ -80,3 +80,78 @@ def log_cagri(fonksiyon: Callable[..., Any]) -> Callable[..., Any]:
         return sonuc
 
     return sarmalayici
+
+
+def sinirla(alt: int | float, ust: int | float) -> Callable[[Callable], Callable]:
+    """Dekore edilen fonksiyonun ilk argümanının [alt, ust] aralığında olduğunu denetleyen dekoratör.
+
+    İlk argüman aralık dışındaysa anlamlı bir ValueError fırlatır:
+    '{fonksiyon.__name__}: {deger} değeri {alt}-{ust} aralığında değil'
+
+    Args:
+        alt: İzin verilen en küçük değer (dahil).
+        ust: İzin verilen en büyük değer (dahil).
+
+    Returns:
+        Callable: Aralığı denetleyen dekoratör.
+    """
+    def dekorator(fonksiyon: Callable) -> Callable:
+        @functools.wraps(fonksiyon)
+        def sarmalayici(*args: Any, **kwargs: Any) -> Any:
+            if not args:
+                raise ValueError(f"{fonksiyon.__name__}: En az bir konumsal argüman bekleniyor.")
+            ilk_arg = args[0]
+            if not (alt <= ilk_arg <= ust):
+                raise ValueError(
+                    f"{fonksiyon.__name__}: {ilk_arg} değeri {alt}-{ust} aralığında değil"
+                )
+            return fonksiyon(*args, **kwargs)
+
+        return sarmalayici
+
+    return dekorator
+
+
+@sinirla(0, 100)
+def yakit_harca(miktar: int) -> int:
+    """Belirtilen miktar kadar yakıt harcar ve kalan yakıtı döndürür."""
+    return 100 - miktar
+
+
+def hafiza(maxsize: int | None = None) -> Callable[[Callable], Callable]:
+    """Bonus (+10): functools.lru_cache kullanmadan çalışan closure tabanlı önbellek dekoratörü.
+
+    Closure içindeki bir sözlükle çalışır. maxsize verildiğinde önbellek dolunca
+    en eski girdiyi silerek LRU/FIFO mantığını uygular.
+
+    Args:
+        maxsize: Önbellekte tutulacak en fazla eleman sayısı (None ise sınırsız).
+
+    Returns:
+        Callable: Önbellekleme yapan dekoratör.
+    """
+    def dekorator(fonksiyon: Callable) -> Callable:
+        onbellek: dict[Any, Any] = {}
+
+        @functools.wraps(fonksiyon)
+        def sarmalayici(*args: Any, **kwargs: Any) -> Any:
+            anahtar = (args, tuple(sorted(kwargs.items())))
+            if anahtar in onbellek:
+                deger = onbellek.pop(anahtar)
+                onbellek[anahtar] = deger
+                return deger
+
+            sonuc = fonksiyon(*args, **kwargs)
+
+            if maxsize is not None and maxsize > 0:
+                while len(onbellek) >= maxsize:
+                    en_eski = next(iter(onbellek))
+                    del onbellek[en_eski]
+
+            onbellek[anahtar] = sonuc
+            return sonuc
+
+        sarmalayici.onbellek = onbellek
+        return sarmalayici
+
+    return dekorator
