@@ -5,6 +5,7 @@
 # Görev 1 – Saf fonksiyonlar ve uzay seyahati
 
 from uzay_oyunu.galaksi import galaksi_kur, veri_yukle, galaksi_yukle
+from uzay_oyunu.akis import yakit_gostergesi
 
 
 def envanter_metni(credits: bool, engines: bool, copilot: bool) -> str:
@@ -33,7 +34,7 @@ def hedef_menusu(hedefler: list) -> str:
     return "\n".join(satirlar)
 
 
-def travel():
+def travel() -> None:
     """Uzay oyunu seyahat fonksiyonu.
 
     Hedefler sabit listeden değil, galaksi['baglantilar'][planet] üzerinden alınır.
@@ -59,6 +60,7 @@ def travel():
 
     planet = galaksi.get("konum", "dünya")
     yakit = galaksi.get("yakit", 100)
+    gosterge = yakit_gostergesi(yakit, 5)
 
     while True:
         destinations = galaksi["baglantilar"].get(planet, [])
@@ -78,8 +80,13 @@ def travel():
         try:
             index = int(secim) - 1
             if 0 <= index < len(destinations):
+                try:
+                    yakit = next(gosterge)
+                except StopIteration:
+                    print("Yakıtın bitti, uzayda sürükleniyorsun…")
+                    break
+
                 planet = destinations[index]
-                yakit -= 10
                 toplam_hamle = sayac()
             else:
                 print("Geçersiz seçim!")

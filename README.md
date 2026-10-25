@@ -1,23 +1,66 @@
-# İleri Python Programlama - Hafta 3 Lab Ödevi
+# İleri Python Programlama — Hafta 4 Lab Ödevi
 
-**Öğrenci:** Emir Talha Karaman  
-**Öğrenci Numarası:** 20253006003  
-**Ders:** İleri Python Programlama  
-**Öğretim Üyesi:** Dr. Öğr. Üyesi Murat Emeç  
-**Dönem:** 2026–2027 Güz  
-**GitHub Deposu:** https://github.com/EmirTK8/20253006003_hafta3  
+**Ad Soyad:** Emir Talha Karaman
+**Öğrenci No:** 20253006003
+**Ders:** İleri Python Programlama
+**Kurum:** İstanbul Nişantaşı Üniversitesi
+**Öğretim Üyesi:** Dr. Öğr. Üyesi Murat Emeç
+**Dönem:** 2026–2027 Güz
+**GitHub deposu:** https://github.com/EmirTK8/20253006003_hafta3
 
----
+## Proje
 
-### Proje Özeti ve Yapılan Çalışmalar
+Hafta 3'te geliştirilen uzay oyunu bu hafta üreteçler, tembel veri işleme,
+önbellekli rota hesabı ve `functools` kullanımıyla genişletildi. Önceki haftanın
+saf fonksiyonları, galaksi JSON verisi, `*args`/`**kwargs`, closure, lambda ve
+kapsam çalışmaları korunmuştur.
 
-Bu lab çalışmasında, uzay macerası oyununun monolitik seyahat mekanizması (`travel`) küçük ve bağımsız test edilebilir fonksiyonlara bölünmüş, harita yapısı ise harici bir veri dosyasına taşınmıştır.
+## Hafta 4 görevleri
 
-Ödev boyunca uygulanan temel başlıklar:
-* **Saf Fonksiyonlar (Pure Functions):** `envanter_metni` ve `hedef_menusu` fonksiyonları ekrana çıktı basmadan metin üretecek şekilde kurgulanmış ve test odaklı (TDD) geliştirilmiştir.
-* **Esnek ve Anahtar Kelime Parametreleri:** `gorev_kaydi` fonksiyonu ile `*args`, `**kwargs` açma işlemleri ve pozisyonel verilemeyen (keyword-only) `oncelik` parametresi kullanılmıştır.
-* **Veri Odaklı Mimari:** Oyun evreni `galaksi.json` dosyasına aktarılmış; `galaksi_kur` fonksiyonu ile rota bağlantıları ve varsayılan yakıt değerleri yönetilmiştir.
-* **Kapsam (Scope) Analizi ve Tuzaklar:** Varsayılan parametrelerdeki değiştirilebilir liste tuzağı `None` kalıbıyla giderilmiş; LEGB hiyerarşisi ve `UnboundLocalError` davranışları `kapsam.md` belgesinde incelenmiştir.
-* **İleri Fonksiyon Teknikleri:** `nonlocal` ile durum tutan `hamle_sayaci` closure'ı, çok kriterli lambda sıralaması (`en_bagli_gezegenler`) ve yürütme süresini hesaplayan `@sure_olc` dekoratörü kodlanmıştır.
+1. `uzay_oyunu/akis.py` içinde Fibonacci ve yakıt üreteçleri.
+2. Oyunda her yolculukta yakıt tüketimi ve yakıt bittiğinde kayıp mesajı.
+3. `veri/seyir.txt` dosyası ve dosyayı listeye almadan işleyen üç aşamalı
+   seyir defteri üreteç boru hattı.
+4. `uzay_oyunu/rotalar.py` içinde önbellekli/önbelleksiz rota sayacı.
+5. `istatistik.py` içinde galaksi istatistiklerinin iki yazımı ve `partial`
+   ile `hizli_yolculuk`.
 
-Tüm görevlerde `global` kullanımı yerine parametre aktarımı ve closure yapıları tercih edilmiş, tüm birim testlerin (`pytest`) eksiksiz geçmesi sağlanmıştır.
+İstatistik çıktıları mevcut galaksi verisine göre:
+
+```text
+['DÜNYA', 'CENTAURI', 'SIRIUS', 'ORION', 'KARA_DELIK']
+['dünya', 'centauri', 'sirius', 'orion']
+12
+```
+
+Bağlantı toplamı, bu depodaki beş gezegenli galaksideki tüm yönlü bağlantı
+listelerinin uzunlukları toplamıdır. Bu nedenle örnek metindeki 10 değeri yerine
+mevcut veri için 12 elde edilir.
+
+## Rota sayacı ölçümü
+
+Ölçüm, `uzay_oyunu/galaksi.json` içindeki galaksi ve `dünya` başlangıç gezegeni
+kullanılarak, `adim=20` için `time.perf_counter()` ile yapıldı. Önce
+önbelleksiz fonksiyon, sonra yeni ve boş bir LRU önbelleği kullanan fonksiyon
+çalıştırıldı. Çalışma ortamı: macOS, Python 3.14.2.
+
+| Yöntem | Sonuç | Süre |
+|---|---:|---:|
+| Önbelleksiz | 147261692 | 65.082095 saniye |
+| Önbellekli | 147261692 | 0.000122 saniye |
+
+`cache_info()` çıktısı: `CacheInfo(hits=128, misses=98, maxsize=None, currsize=98)`.
+
+Önbelleksiz hesap aynı alt rotaları defalarca yeniden hesaplarken, önbellekli
+sürüm her gezegen/adım çifti için sonucu saklayıp tekrar kullanır. Süreler
+çalıştırma ortamına göre değişebilir.
+
+## Testler
+
+Tüm eski ve yeni testleri çalıştırmak için:
+
+```bash
+uv run pytest
+```
+
+Son doğrulama: **31 test geçti**.
