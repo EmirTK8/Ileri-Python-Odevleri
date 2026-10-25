@@ -154,3 +154,74 @@ def test_log_cagri_hedef_menusu_ve_galaksi_kur(capsys: pytest.CaptureFixture[str
     assert "<- hedef_menusu =" in cikis
     assert "-> galaksi_kur(['dünya', 'mars'], {'dünya': ['mars']}, 'dünya', yakit=80)" in cikis
     assert "<- galaksi_kur =" in cikis
+
+
+# --- Görev 4: Komut Sistemi Testleri ---
+
+def test_komut_kayit_ve_mukerrer_hata() -> None:
+    """@komut dekoratörünün fonksiyonu değiştirmeden kaydettiğini ve mükerrer ada hata verdiğini doğrular."""
+    from uzay_oyunu.komutlar import komut, KOMUTLAR
+
+    @komut("test_komutu", "örnek bir test komutu")
+    def ozel_islem(durum: dict) -> str:
+        return "tamam"
+
+    assert ozel_islem({"konum": "dünya"}) == "tamam"
+    assert "test_komutu" in KOMUTLAR
+    assert KOMUTLAR["test_komutu"][1] == "örnek bir test komutu"
+
+    # Aynı adla tekrar kayıt denenirse ValueError fırlatmalıdır
+    with pytest.raises(ValueError) as excinfo:
+        @komut("test_komutu", "ikinci kayıt")
+        def mukerrer(durum: dict) -> str:
+            return "hata"
+
+    assert "zaten kayıtlı" in str(excinfo.value)
+
+
+def test_komut_yardim() -> None:
+    """yardim komutunun kayıtlı komutları ve açıklamalarını listelediğini doğrular."""
+    from uzay_oyunu.komutlar import yardim
+
+    cikti = yardim({})
+    assert "yardim" in cikti
+    assert "envanter" in cikti
+    assert "harita" in cikti
+    assert "komutları listeler" in cikti
+
+
+def test_komut_envanter() -> None:
+    """envanter komutunun durum sözlüğündeki eşyaları listelediğini doğrular."""
+    from uzay_oyunu.komutlar import envanter
+
+    durum = {"credits": True, "engines": False, "copilot": True}
+    cikti = envanter(durum)
+    assert "bol kredi" in cikti
+    assert "yetenekli bir pilot" in cikti
+
+
+def test_komut_harita() -> None:
+    """harita komutunun bulunulan konumdan gidilebilecek yerleri virgülle listelediğini doğrular."""
+    from uzay_oyunu.komutlar import harita
+
+    durum = {
+        "konum": "dünya",
+        "baglantilar": {"dünya": ["centauri", "sirius"]}
+    }
+    cikti = harita(durum)
+    assert cikti == "centauri, sirius"
+
+
+def test_travel_komut_entegrasyonu(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """travel() içinde komut girildiğinde komutun çalışıp menünün tekrar gösterildiğini doğrular."""
+    from uzay_oyunu.oyun import travel
+
+    # Önce 'harita' komutunu çalıştır, ardından 'q' ile çık
+    girdiler = iter(["harita", "q"])
+    monkeypatch.setattr("builtins.input", lambda _istem: next(girdiler))
+
+    travel()
+
+    cikis = capsys.readouterr().out
+    assert "centauri, sirius" in cikis
+    assert "Oyunu 0 hamlede bitirdin!" in cikis

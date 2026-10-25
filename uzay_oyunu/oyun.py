@@ -7,6 +7,7 @@
 from uzay_oyunu.galaksi import galaksi_kur, veri_yukle, galaksi_yukle
 from uzay_oyunu.akis import yakit_gostergesi
 from uzay_oyunu.dekoratorler import log_cagri
+from uzay_oyunu.komutlar import KOMUTLAR
 
 
 def envanter_metni(credits: bool, engines: bool, copilot: bool) -> str:
@@ -41,6 +42,7 @@ def travel() -> None:
 
     Hedefler sabit listeden değil, galaksi['baglantilar'][planet] üzerinden alınır.
     Hamle sayacı her adımda çağrılır ve oyun bitince toplam hamleyi yazar.
+    Oyuncu girdisi bir komut adıysa komut çalıştırılır ve menü yeniden gösterilir.
     """
     try:
         from uzay_oyunu.araclar import hamle_sayaci
@@ -56,13 +58,25 @@ def travel() -> None:
     sayac = hamle_sayaci()
     toplam_hamle = 0
 
-    envanter = envanter_metni(True, False, True)
+    credits = True
+    engines = False
+    copilot = True
+
+    envanter = envanter_metni(credits, engines, copilot)
     if envanter:
         print(envanter)
 
     planet = galaksi.get("konum", "dünya")
     yakit = galaksi.get("yakit", 100)
     gosterge = yakit_gostergesi(yakit, 5)
+
+    durum = {
+        "konum": planet,
+        "baglantilar": galaksi.get("baglantilar", {}),
+        "credits": credits,
+        "engines": engines,
+        "copilot": copilot,
+    }
 
     while True:
         destinations = galaksi["baglantilar"].get(planet, [])
@@ -74,10 +88,20 @@ def travel() -> None:
         print(f"\nŞu anki konum: {planet} | Kalan Yakıt: {yakit}")
         print(hedef_menusu(destinations))
 
-        secim = input("Seçiminiz (Çıkış için q): ")
+        secim = input("Seçiminiz (Çıkış için q): ").strip()
         if secim.lower() == "q":
             print(f"Oyunu {toplam_hamle} hamlede bitirdin!")
             break
+
+        # Komut sistemi kontrolü
+        if secim in KOMUTLAR:
+            komut_fonksiyonu, _ = KOMUTLAR[secim]
+            durum["konum"] = planet
+            durum["baglantilar"] = galaksi.get("baglantilar", {})
+            sonuc = komut_fonksiyonu(durum)
+            if sonuc:
+                print(sonuc)
+            continue
 
         try:
             index = int(secim) - 1
@@ -89,6 +113,7 @@ def travel() -> None:
                     break
 
                 planet = destinations[index]
+                durum["konum"] = planet
                 toplam_hamle = sayac()
             else:
                 print("Geçersiz seçim!")
