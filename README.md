@@ -17,6 +17,7 @@ Bu depo, dönem boyunca geliştirilen **Uzay Oyunu** projesini ve haftalık labo
 * **`main`**: En güncel durum ve tüm haftaların birleştirilmiş ana çalışma alanı.
 * **`hafta3`**: 3. Hafta Lab Ödevi (Saf fonksiyonlar, galaksi JSON verisi, esnek parametreler, kapsam ve closure).
 * **`hafta4`**: 4. Hafta Lab Ödevi (Üreteçler, seyir boru hattı, rota önbelleği ve functools).
+* **`hafta5`**: 5. Hafta Lab Ödevi (Dekoratörler, çağrı sayacı, loglama, komut sistemi ve aralık sınırlayıcı).
 * *(Sonraki haftalar da önceki haftanın dalından türetilerek bu yapıyla devam edecektir.)*
 
 ---
@@ -45,15 +46,26 @@ Uzay macerasına üreteçler (generators), tembel veri işleme boru hattı ve `@
 
 ### Görev 4: Rota Sayacı Performans Ölçümü (`adim=20`)
 
-Mevcut galaksi yapısında `dünya` başlangıç gezegeni için 20 adımda tamamlanan rotalar test edilmiştir:
-
 | Yöntem | Hesaplanan Rota | Çalışma Süresi |
 |:---|---:|---:|
 | **Önbelleksiz** | 147.261.692 | ~65.08 saniye |
 | **Önbellekli (`@lru_cache`)** | 147.261.692 | ~0.00012 saniye |
 
-* **`cache_info()` Çıktısı:** `CacheInfo(hits=128, misses=98, maxsize=None, currsize=98)`
-* **Sonuç:** Önbellek kullanımı, tekrarlanan alt rota hesaplamalarını hafızadan getirerek ~500.000 katlık bir performans artışı sağlamıştır.
+---
+
+## 🎨 Hafta 5 — Dekoratörler
+
+Uzay projesine kendi dekoratörlerimiz ve dekoratörlerle çalışan dinamik bir komut kayıt sistemi eklendi (`uzay_oyunu/dekoratorler.py`, `uzay_oyunu/komutlar.py`):
+
+1. **Süre Ölçen Dekoratör (`sure_olc`):** `time.perf_counter()` ile yürütme süresini ölçüp `ad: 0.0123 sn` biçiminde raporlar; `functools.wraps` ile `__name__` ve `__doc__` metaverilerini korur.
+2. **Çağrı Sayacı ve Dekoratör Sırası (`say`):** Çağrıları `.cagri` niteliğinde sayan dekoratör yazıldı. `fib(20)` üzerinde `@say` ve `@lru_cache` sıralamasının sonuçları incelendi ve `dekorator_sirasi.md` belgesinde açıklandı:
+   - Yalnızca `@say`: **21891** çağrı
+   - `@say` üstte, `@lru_cache` altta: **39** çağrı
+   - `@lru_cache` üstte, `@say` altta: **21** çağrı (`fib.__wrapped__.cagri`)
+3. **Loglayan Dekoratör (`log_cagri`):** Fonksiyon çağrılarından önce girdileri (`-> yolculuk('orion', hiz=3)`), sonrasında dönüş değerini (`<- yolculuk = 'orion hiz=3'`) konsola yazar. `galaksi_kur` ve `hedef_menusu` fonksiyonlarına entegre edildi.
+4. **Komut Sistemi / Kayıt Deseni (`@komut`):** Argüman alan kayıt dekoratörü ile `KOMUTLAR` sözlüğü kuruldu. Mükerrer komut kaydında `ValueError` fırlatılır. `yardim`, `envanter` ve `harita` komutları tanımlandı; `travel()` döngüsüne entegre edilerek oyun esnasında komutların çalıştırılması sağlandı.
+5. **Argüman Alan Dekoratör (`sinirla`):** Fonksiyonun ilk argümanının `[alt, ust]` aralığında olduğunu denetler. `@sinirla(0, 100)` dekoratörü `yakit_harca(miktar)` fonksiyonuna uygulandı.
+6. **Bonus (+10 Puan) `hafiza(maxsize=None)`:** `lru_cache` kullanmadan, closure içindeki sözlükle çalışan ve `maxsize` dolduğunda en eski girdiyi tahliye eden özel LRU önbellek dekoratörü kodlandı.
 
 ---
 
@@ -67,4 +79,4 @@ uv run pytest
 python3 -m pytest
 ```
 
-* Tüm haftaların toplam **31 testi** (`tests/test_fonksiyonlar.py`, `tests/test_tuzaklar.py`, `tests/test_akis.py`) başarıyla geçmektedir.
+* Tüm haftaların toplam **49 testi** (`tests/test_fonksiyonlar.py`, `tests/test_tuzaklar.py`, `tests/test_akis.py`, `tests/test_dekoratorler.py`) başarıyla geçmektedir.
